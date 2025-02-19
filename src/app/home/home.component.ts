@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, DoCheck, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { FormsModule } from "@angular/forms";
 import { NgClass, NgFor, NgIf } from '@angular/common';
@@ -7,6 +7,7 @@ import { CurrencyPipe } from '../shared/pipes/CurrencyPipe.Pipe';
 import { uppercaseText } from '../shared/pipes/UpperCase.Pipe';
 import { ProductItemComponent } from '../shared/product-item/productItem.component';
 import { productItem } from '../shared/types/productItem';
+import { HttpClient, HttpClientModule  } from '@angular/common/http';
 @Component({
 	selector: 'app-home',
 	imports: [
@@ -19,7 +20,9 @@ import { productItem } from '../shared/types/productItem';
 		FormsModule,
 		RouterLink,
 		ProductItemComponent,
-		
+		NgIf,
+		HttpClientModule ,
+
 	],
 	templateUrl: './home.component.html',
 	styleUrl: './home.component.css',
@@ -27,10 +30,32 @@ import { productItem } from '../shared/types/productItem';
 
 
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnChanges, OnDestroy {
+
+	constructor(private http:HttpClient) {
+
+	}
+
+	ngOnInit(): void {
+		console.log("1")
+		this.http.get<any>("https://ninedev-api.vercel.app/blogs")
+			.subscribe(data => console.log(data),
+				
+			)
+	}
+
+	ngOnChanges(): void {
+		console.log('on change start')
+	}
+
+
+
+
+
+
 	products: productItem[] = [
 		{
-			id: 6,
+			id: 1,
 			name: "sambar og",
 			image: "assets/images/giay1.jpg",
 			price: 400000
@@ -45,7 +70,7 @@ export class HomeComponent {
 			id: 4,
 			name: "adidas superstar",
 			image: "assets/images/giay3.jpg",
-			price: 450000
+			price: 45000
 		},
 		{
 			id: 3,
@@ -84,7 +109,33 @@ export class HomeComponent {
 
 	}
 
-	isVisible = false;
+	isVisible = true;
+
+
+	handleDelete = (event: number) => {
+
+		console.log(event);
+		const productIndex = this.products.findIndex(item => item.id == event)
+		if (productIndex !== -1) {
+			const updatedProducts = [...this.products]; // Tạo bản sao mới
+			updatedProducts.splice(productIndex, 1);
+			this.products = updatedProducts;
+		}
+
+		this.products = this.products.filter(item => item.id !== event);
+	}
+	ngOnDestroy(): void {
+
+	}
+
+	handleChangeVisible() {
+		if (this.isVisible == true) {
+			this.isVisible = false
+		} else {
+			this.isVisible = true;
+		}
+	}
+
 
 
 
