@@ -1,0 +1,7 @@
+.wrapper-cart {
+	background-image: linear-gradient(to right, rgb(76, 86, 234), red);
+	height: 100vh;
+	color: white;
+	display: grid;
+	justify-content: center;
+}

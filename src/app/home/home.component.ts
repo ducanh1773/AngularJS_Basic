@@ -7,7 +7,10 @@ import { CurrencyPipe } from '../shared/pipes/CurrencyPipe.Pipe';
 import { uppercaseText } from '../shared/pipes/UpperCase.Pipe';
 import { ProductItemComponent } from '../shared/product-item/productItem.component';
 import { productItem } from '../shared/types/productItem';
-import { HttpClient, HttpClientModule  } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { BlogService } from '../services/BlogService';
+import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 @Component({
 	selector: 'app-home',
 	imports: [
@@ -21,7 +24,8 @@ import { HttpClient, HttpClientModule  } from '@angular/common/http';
 		RouterLink,
 		ProductItemComponent,
 		NgIf,
-		HttpClientModule ,
+		HttpClientModule,
+
 
 	],
 	templateUrl: './home.component.html',
@@ -32,17 +36,11 @@ import { HttpClient, HttpClientModule  } from '@angular/common/http';
 })
 export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 
-	constructor(private http:HttpClient) {
-
+	constructor(private blogService: BlogService) {
+		this.getBlockApi = new Subscription();
 	}
 
-	ngOnInit(): void {
-		console.log("1")
-		this.http.get<any>("https://ninedev-api.vercel.app/blogs")
-			.subscribe(data => console.log(data),
-				
-			)
-	}
+
 
 	ngOnChanges(): void {
 		console.log('on change start')
@@ -86,6 +84,29 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 		}
 	]
 
+	ngOnInit(): void {
+		this.getBlockApi = this.blogService
+			.getBlogs()
+			.pipe(
+				map(({ data }) =>
+					data.map((item: any) => {
+						return {
+							...item,
+							price: Number(item.body),
+							image: "assets/images/giay2.jpg",
+							name: item.title,
+							id: item.id,
+
+						};
+					})
+				),
+				
+			)
+			.subscribe((res) => {
+				this.products = res;
+			});
+	}
+
 	title = 'angular-basic-project';
 	tittleObject = {
 		name: 'nineDev',
@@ -112,21 +133,18 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 	isVisible = true;
 
 
-	handleDelete = (event: number) => {
+	handleDelete = (id: number) => {
 
-		console.log(event);
-		const productIndex = this.products.findIndex(item => item.id == event)
-		if (productIndex !== -1) {
-			const updatedProducts = [...this.products]; // Tạo bản sao mới
-			updatedProducts.splice(productIndex, 1);
-			this.products = updatedProducts;
-		}
-
-		this.products = this.products.filter(item => item.id !== event);
+		console.log(id);
+		this.blogService.deleteBlogs(id).subscribe(({data}:any) =>{
+			if(data == 1){
+				this.products = this.products.filter(item => item.id !== id);
+			}
+		})
 	}
-	ngOnDestroy(): void {
+	// ngOnDestroy(): void {
 
-	}
+	// }
 
 	handleChangeVisible() {
 		if (this.isVisible == true) {
@@ -136,8 +154,13 @@ export class HomeComponent implements OnInit, OnChanges, OnDestroy {
 		}
 	}
 
+	getBlockApi: Subscription;
 
 
-
-
+	ngOnDestroy(): void {
+		if (this.getBlockApi) {
+			this.getBlockApi.unsubscribe();
+			console.log('getBlockApi unscribe')
+		}
+	}
 }

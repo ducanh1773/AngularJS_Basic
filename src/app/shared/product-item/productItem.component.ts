@@ -31,8 +31,8 @@ export class ProductItemComponent implements OnChanges , OnDestroy{
 	@Input() products:productItem[] = []
 	@Output() dataEvent = new EventEmitter<number>();
 	handleDelete  = (id: number)=>{
-		// console.log(id);
 		this.dataEvent.emit(id);
+		
 	}
 	
 	ngOnChanges(changes: SimpleChanges): void {
